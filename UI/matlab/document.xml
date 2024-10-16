@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[classdef uiux < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure                       matlab.ui.Figure
+        UIAxes                         matlab.ui.control.UIAxes
+        UIAxes2                        matlab.ui.control.UIAxes
+        SetupPanel                     matlab.ui.container.Panel
+        QualityLabel                   matlab.ui.control.Label
+        QualityEditField               matlab.ui.control.NumericEditField
+        UploadimageButton              matlab.ui.control.Button
+        CompressimageButton            matlab.ui.control.Button
+        compressionratioLabel          matlab.ui.control.Label
+        Label                          matlab.ui.control.Label
+        JPEGCompressionAlgorithmLabel  matlab.ui.control.Label
+    end
+
+    methods (Access = private)
+
+        % Button pushed function: UploadimageButton
+        function UploadimageButtonPushed(app, event)
+            global a;
+            [filename, pathname] = uigetfile('*.*', 'Pick an Image');
+            filename=strcat(pathname,filename);
+            a=imread(filename);
+            imshow(a,'Parent',app.UIAxes);
+        end
+
+        % Button pushed function: CompressimageButton
+        function CompressimageButtonPushed(app, event)
+            global a;
+                        % Check if an image has been uploaded
+            if isempty(a)
+                errordlg('Please upload an image first.', 'Error');
+                return;
+            end
+            
+            % Get the quality value from the qualityEditField
+            quality = app.QualityEditField.Value;
+            
+            % Call your existing script 'code.m' to compress the image
+            [compressedImage, compressionratio] = jpegcomp(a, quality); % Call your 'code.m' script with the original image and quality
+            
+            % Display the compressed image in compressedImageAxis
+            imshow(compressedImage, 'Parent', app.UIAxes2);
+            app.Label.Text = num2str(compressionratio);
+        end
+    end
+
+    % App initialization and construction
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure
+            app.UIFigure = uifigure;
+            app.UIFigure.Color = [0.8902 0.7882 0.5686];
+            app.UIFigure.Position = [100 100 640 480];
+            app.UIFigure.Name = 'MATLAB App';
+
+            % Create UIAxes
+            app.UIAxes = uiaxes(app.UIFigure);
+            title(app.UIAxes, 'original image')
+            xlabel(app.UIAxes, '')
+            ylabel(app.UIAxes, '')
+            zlabel(app.UIAxes, '')
+            app.UIAxes.Position = [1 170 313 210];
+
+            % Create UIAxes2
+            app.UIAxes2 = uiaxes(app.UIFigure);
+            title(app.UIAxes2, 'compressed image')
+            xlabel(app.UIAxes2, '')
+            ylabel(app.UIAxes2, '')
+            zlabel(app.UIAxes2, '')
+            app.UIAxes2.Position = [326 170 315 210];
+
+            % Create SetupPanel
+            app.SetupPanel = uipanel(app.UIFigure);
+            app.SetupPanel.ForegroundColor = [0.8784 0.6275 0.5176];
+            app.SetupPanel.Title = 'Setup';
+            app.SetupPanel.BackgroundColor = [0.5412 0.702 0.9098];
+            app.SetupPanel.FontWeight = 'bold';
+            app.SetupPanel.FontSize = 14;
+            app.SetupPanel.Position = [79 30 200 129];
+
+            % Create QualityLabel
+            app.QualityLabel = uilabel(app.SetupPanel);
+            app.QualityLabel.HorizontalAlignment = 'right';
+            app.QualityLabel.FontSize = 14;
+            app.QualityLabel.FontWeight = 'bold';
+            app.QualityLabel.FontColor = [0.8784 0.6706 0.4588];
+            app.QualityLabel.Position = [47 70 60 22];
+            app.QualityLabel.Text = 'Quality =';
+
+            % Create QualityEditField
+            app.QualityEditField = uieditfield(app.SetupPanel, 'numeric');
+            app.QualityEditField.Limits = [0 99];
+            app.QualityEditField.FontSize = 14;
+            app.QualityEditField.FontWeight = 'bold';
+            app.QualityEditField.Position = [115 70 37 22];
+            app.QualityEditField.Value = 50;
+
+            % Create UploadimageButton
+            app.UploadimageButton = uibutton(app.SetupPanel, 'push');
+            app.UploadimageButton.ButtonPushedFcn = createCallbackFcn(app, @UploadimageButtonPushed, true);
+            app.UploadimageButton.Position = [47 41 105 22];
+            app.UploadimageButton.Text = 'Upload image';
+
+            % Create CompressimageButton
+            app.CompressimageButton = uibutton(app.SetupPanel, 'push');
+            app.CompressimageButton.ButtonPushedFcn = createCallbackFcn(app, @CompressimageButtonPushed, true);
+            app.CompressimageButton.Position = [47 6 105 22];
+            app.CompressimageButton.Text = 'Compress image';
+
+            % Create compressionratioLabel
+            app.compressionratioLabel = uilabel(app.UIFigure);
+            app.compressionratioLabel.FontSize = 14;
+            app.compressionratioLabel.FontColor = [0.3137 0.6078 0.8314];
+            app.compressionratioLabel.Position = [390 79 128 22];
+            app.compressionratioLabel.Text = 'compression ratio =';
+
+            % Create Label
+            app.Label = uilabel(app.UIFigure);
+            app.Label.FontSize = 14;
+            app.Label.FontWeight = 'bold';
+            app.Label.Position = [526 79 98 22];
+            app.Label.Text = '';
+
+            % Create JPEGCompressionAlgorithmLabel
+            app.JPEGCompressionAlgorithmLabel = uilabel(app.UIFigure);
+            app.JPEGCompressionAlgorithmLabel.FontSize = 16;
+            app.JPEGCompressionAlgorithmLabel.FontWeight = 'bold';
+            app.JPEGCompressionAlgorithmLabel.Position = [200 408 241 41];
+            app.JPEGCompressionAlgorithmLabel.Text = 'JPEG Compression Algorithm ';
+        end
+    end
+
+    methods (Access = public)
+
+        % Construct app
+        function app = uiux
+
+            % Create and configure components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end]]></w:t></w:r></w:p></w:body></w:document>
